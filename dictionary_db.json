@@ -1,0 +1,36 @@
+{
+  "dictionary": {
+    "gizmo": {
+      "pos": "noun",
+      "definition": "A portable deterministic intelligence engine centered on a Tau Clock for precise, auditable computation.",
+      "source": "GIZMO Framework"
+    },
+    "tau": {
+      "pos": "noun",
+      "definition": "The circle constant τ = 2π, representing one full turn; symbol of cyclical precision and time in this engine.",
+      "source": "Mathematical domain"
+    },
+    "deterministic": {
+      "pos": "adjective",
+      "definition": "Predictable outcome given the same initial state and inputs; core property of the Tau Clock.",
+      "source": "Merriam-Webster"
+    },
+    "proof": {
+      "pos": "noun",
+      "definition": "A finite sequence of well-formed formulas establishing a conclusion via rules of inference.",
+      "source": "Logic domain"
+    },
+    "precision": {
+      "pos": "noun",
+      "definition": "The quality, condition, or fact of being exact and accurate.",
+      "source": "Oxford Languages"
+    }
+  },
+  "thesaurus": {
+    "clock": ["timepiece", "chronometer", "timer", "counter"],
+    "precision": ["accuracy", "exactness", "rigor", "fidelity"],
+    "portable": ["mobile", "transportable", "compact"],
+    "deterministic": ["predictable", "reproducible"],
+    "gizmo": ["gadget", "device", "mechanism"]
+  }
+}
