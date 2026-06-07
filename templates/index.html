@@ -1,0 +1,197 @@
+<!-- Save this file as /templates/index.html to let run_api.py read it directly -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dictionary</title>
+    
+    <!-- React + ReactDOM via CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0; 
+            padding: 24px; 
+            background-color: #0f0f11; 
+            color: #e4e4e7;
+        }
+        header { 
+            border-bottom: 1px solid #27272a; 
+            padding-bottom: 12px; 
+            margin-bottom: 24px; 
+        }
+        h1 { 
+            color: #f4f4f5; 
+            font-size: 24px; 
+            font-weight: 600; 
+            margin: 0; 
+        }
+        p { 
+            color: #a1a1aa; 
+            font-size: 14px; 
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Dictionary</h1>
+    </header>
+    <main>
+        <p>Type a word or phrase below to get its definition or related information.</p>
+    </main>
+
+    <!-- Mount Point for React Component -->
+    <div id="react-widget-root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+
+        function DictionaryChatWidget() {
+            const [isOpen, setIsOpen] = useState(false);
+            const [inputVal, setInputVal] = useState('');
+            const [messages, setMessages] = useState([
+                { sender: 'system', text: 'Chat ready. How can I help you?' }
+            ]);
+            const [isLoading, setIsLoading] = useState(false);
+            const messagesEndRef = useRef(null);
+
+            useEffect(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [messages, isLoading]);
+
+            const handleSend = async (e) => {
+                e.preventDefault();
+                if (!inputVal.trim() || isLoading) return;
+
+                const userText = inputVal.trim();
+                setMessages(prev => [...prev, { sender: 'user', text: userText }]);
+                setInputVal('');
+                setIsLoading(true);
+
+                try {
+                    const response = await fetch('/api/process', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            token_string: userText,
+                            session_id: "web_client_session"
+                        }),
+                    });
+
+                    if (!response.ok) throw new Error(`Server error: ${response.status}`);
+
+                    const data = await response.json();
+                    const serverResponse = data.response || data.message || "No response received.";
+                    setMessages(prev => [...prev, { sender: 'system', text: serverResponse }]);
+                } catch (error) {
+                    setMessages(prev => [...prev, { 
+                        sender: 'system', 
+                        text: 'Unable to connect to server.' 
+                    }]);
+                    console.error("Fetch error:", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            return React.createElement('div', {
+                style: { position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999, fontFamily: 'monospace' }
+            },
+                // Floating Button
+                !isOpen && React.createElement('button', {
+                    onClick: () => setIsOpen(true),
+                    style: {
+                        width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#0070f3',
+                        color: '#fff', border: 'none', fontSize: '24px', cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }
+                }, 'Chat'),
+
+                // Chat Window
+                isOpen && React.createElement('div', {
+                    style: {
+                        width: '360px', height: '460px', backgroundColor: '#1e1e1e', color: '#fff',
+                        borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                        display: 'flex', flexDirection: 'column', border: '1px solid #333'
+                    }
+                },
+                    // Header
+                    React.createElement('div', {
+                        style: {
+                            padding: '12px', background: '#2d2d2d', borderBottom: '1px solid #333',
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                        }
+                    },
+                        React.createElement('span', {
+                            style: { fontWeight: 'bold', fontSize: '14px' }
+                        }, 'Dictionary'),
+                        React.createElement('button', {
+                            onClick: () => setIsOpen(false),
+                            style: { background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '18px' }
+                        }, '✕')
+                    ),
+
+                    // Messages Area
+                    React.createElement('div', {
+                        style: {
+                            flex: 1, padding: '12px', overflowY: 'auto', fontSize: '14px',
+                            display: 'flex', flexDirection: 'column', gap: '8px'
+                        }
+                    },
+                        messages.map((m, idx) =>
+                            React.createElement('div', {
+                                key: idx,
+                                style: {
+                                    alignSelf: m.sender === 'user' ? 'flex-end' : 'flex-start',
+                                    background: m.sender === 'user' ? '#0070f3' : '#2d2d2d',
+                                    padding: '8px 12px', borderRadius: '6px', maxWidth: '85%',
+                                    wordBreak: 'break-word'
+                                }
+                            }, m.text)
+                        ),
+                        isLoading && React.createElement('div', {
+                            style: { color: '#888', fontStyle: 'italic' }
+                        }, 'Thinking...'),
+                        React.createElement('div', { ref: messagesEndRef })
+                    ),
+
+                    // Input Form
+                    React.createElement('form', {
+                        onSubmit: handleSend,
+                        style: { display: 'flex', borderTop: '1px solid #333' }
+                    },
+                        React.createElement('input', {
+                            type: 'text',
+                            value: inputVal,
+                            onChange: (e) => setInputVal(e.target.value),
+                            placeholder: isLoading ? "Processing..." : "Type a message...",
+                            disabled: isLoading,
+                            style: {
+                                flex: 1, padding: '12px', background: '#121212', color: '#fff',
+                                border: 'none', fontSize: '14px', outline: 'none'
+                            }
+                        }),
+                        React.createElement('button', {
+                            type: 'submit',
+                            disabled: isLoading,
+                            style: {
+                                padding: '0 20px', background: isLoading ? '#555' : '#0070f3',
+                                color: '#fff', border: 'none', cursor: 'pointer'
+                            }
+                        }, 'Send')
+                    )
+                )
+            );
+        }
+
+        // Render the component
+        const root = ReactDOM.createRoot(document.getElementById('react-widget-root'));
+        root.render(React.createElement(DictionaryChatWidget));
+    </script>
+</body>
+</html>
