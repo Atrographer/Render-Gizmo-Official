@@ -94,7 +94,7 @@ class WordWeaver:
     def generate_with_vector(self, num_paragraphs: int = 5) -> Dict:
         """Return generated text + its Functional Vector"""
         try:
-            from style_vector import FunctionalVector
+            from style_vector_engine_CODE import FunctionalVector
             text = self.generate_text("", num_paragraphs)
             vector = FunctionalVector().compute(text)
             return {"text": text, "vector": vector}
