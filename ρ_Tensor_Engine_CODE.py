@@ -34,10 +34,6 @@ class RhoTensorEngine:
         
         # Elite Matrix (ρ ≥ 5.0)
         self.elite: List[Dict] = []
-        
-        # Lexical banks (from previous expansion)
-        self.banks = { ... }  # [Use your full expanded WORD_BANK here]
-        self.metaphors = [ ... ]  # [Use your metaphor fragments here]
     
     def _get_d_bin(self, d_value: float) -> str:
         if d_value < 2.0:
